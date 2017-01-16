@@ -40,6 +40,7 @@ int mode2()
 	motor[motor4] = vexRT[Ch3];
 	motor[motor1] = vexRT[Ch2];
 	motor[motor2] = vexRT[Ch2];
+	return 0;
 }
 
 int mode3()
@@ -48,108 +49,76 @@ int mode3()
 	motor[motor1] = vexRT[Ch2];
 	motor[motor3] = vexRT[Ch3Xmtr2];
 	motor[motor4] = vexRT[Ch3Xmtr2];
+	return 0;
 }
 
 task main()
 {
-	ClearTimer(T1); // Why weren't timers used in the first place? You can clean up so many kludges with this...
+	int mode1button = Btn7L;
+	int mode2button = Btn7U;
+	int mode3button = Btn7R;
+	int restartbutton = Btn7D;
+	clearTimer(T1); // Why weren't timers used in the first place? You can clean up so many kludges with this...
 	clearLCDLine(0);
 	clearLCDLine(1);
 	displayLCDPos(0, 0);
 	displayNextLCDString(credits1);
 	displayLCDPos(1, 0);
 	displayNextLCDString(credits2);
-	while(running == true) {
-		while(timewait < 333333) {
-			if(vexRT[Btn7L] == 1) {
-				timewait = 1000000;
-			} else if(vexRT[Btn7U] == 1) {
-				timewait = 2000000;
-			} else if(vexRT[Btn7R] == 1) {
-				timewait = 3000000;
-			}
-			timewait++;
-		}
-		if(timewait == 333333) {
-			motor[servo] = 70;
-			wait1Msec(500);
-			motor[servo] = 0;
-			while(true) {
-        mode1()
-				if(vexRT[Btn8U] == 1) {
-					timewait = 2000000;
-					break;
-				} else if(vexRT[Btn8R] == 1) {
-					timewait = 3000000;
-					break;
-				} else if(SensorValue[bumper] == 1) {
-					running = false;
-					break;
-				}
-			}
-		} else if(timewait >= 1000000 && timewait <= 1000100) {
-			motor[servo] = 70;
-			wait1Msec(500);
-			motor[servo] = 0;
-			while(true) {
-        mode1()
-				if(vexRT[Btn8U] == 1) {
-					timewait = 2000000;
-					break;
-				} else if(vexRT[Btn8R] == 1) {
-					timewait = 3000000;
-					break;
-				} else if(SensorValue[bumper] == 1) {
-					running = false;
-					break;
-				}
-			}
-		} else if(timewait >= 2000000 && timewait <= 2000100) {
-			motor[servo] = 70;
-			wait1Msec(1000);
-			motor[servo] = 0;
-			while(true) {
-				mode2()
-				if(vexRT[Btn8L] == 1) {
-					timewait = 1000000;
-					break;
-				}	else if(vexRT[Btn8R] == 1) {
-					timewait = 3000000;
-					break;
-				}	else if(SensorValue[bumper] == 1)	{
-					running = false;
-					break;
-				}
-			}
-		} else if(timewait >= 3000000 && timewait <= 3000100) {
-			motor[servo] = 70;
-			wait1Msec(1500);
-			motor[servo] = 0;
-			while(true) {
-				mode3()
-				if(vexRT[Btn8L] == 1)	{
-					timewait = 1000000;
-					break;
-				}	else if(vexRT[Btn8U] == 1) {
-					timewait = 2000000;
-					break;
-				} else if(SensorValue[bumper] == 1)	{
-					running = false;
-					break;
-				}
-			}
-		}
+	// Opening code. Timer starts at 0, counts up to 10000 mSec. Default is mode 1, unless selected otherwise.
+	int mode = 1;
+	while (time1[T1] <= 10000) {
+		if(vexRT[mode1button]) {
+			mode = 1;
+			break;
+		} else if(vexRT[mode2button]) {
+		  mode = 2;
+		  break;
+	  } else if (vexRT[mode3button]) {
+	    mode = 3;
+	    break;
+	  }
 	}
-	motor[motor1] = 0;
-	motor[motor2] = 0;
-	motor[motor3] = 0;
-	motor[motor4] = 0;
 	while(true) {
+		if(running) {
+			if (mode == 1)
+			{
+				mode1();
+			}
+			else if (mode == 2)
+			{
+				mode2();
+		  }
+		  else if (mode == 3)
+		  {
+		    mode3();
+		  }
+		  if (vexRT[mode1button]) {
+		  	mode = 1;
+		  } else if (vexRT[mode2button]) {
+		    mode = 2;
+		  } else if (vexRT[mode3button]) {
+		    mode = 3;
+		  }
+		  if (SensorValue[bumper] == 1) {
+		  	running = false;
+		  }
+		} else {
+		  if (vexRT[restartbutton]) {
+		  	motor[motor1] = 0;
+	      motor[motor2] = 0;
+	      motor[motor3] = 0;
+	      motor[motor4] = 0;
+		  	running = true;
+		  }
+	  }
+/*	while(true) {
 		clearLCDLine(0);
 		clearLCDLine(1);
 		displayLCDPos(0, 0);
 		displayNextLCDString(credits1);
 		displayLCDPos(1, 0);
 		displayNextLCDString(credits2);
-	}
+	}*/
+  }
 }
