@@ -32,6 +32,9 @@
 // Common includes for functions
 #include "common.c"
 
+// Include the autonomous recorder/playback library
+#include "autonRecorder.c"
+
 // Definitions to make the code more readable when referencing
 // an assembly on the robot
 #define LeftBase leftBaseTwo // The main left base motor.
@@ -60,9 +63,20 @@ void setupMotors() {
 	slaveMotor(leftBottomLift, rightTopLift);
 }
 
-
+/*
+ * Pre-Autonomous code
+ *
+ * Set up the sensors needed for autonomous,
+ * as well as set up an autonomous selector
+ * on the LCD.
+ */
 void pre_auton()
 {
+	string AutonModes[] = {
+		"No Autonomous",
+		"Support L. Side",
+		"Support R. Side",
+	};
   // Stop user created tasks between Autonomous and Driver controlled modes.
   bStopTasksBetweenModes = true;
 
@@ -72,12 +86,14 @@ void pre_auton()
   // Set up the motor assemblies as slaves, for use in autonomous and
 	// driver control.
 	setupMotors();
+	// Set up the arcade control settings for dual joysticks on the main
+	// controller, and pass the left and right base motors as parameters
+	setupArcadeControl(DualJoystick, LeftBase, RightBase);
 }
 
 
 task autonomous() {
 }
-
 
 /*
  * User control code.
@@ -90,11 +106,12 @@ task autonomous() {
  *     Button 5D - Lift Down
  */
 task usercontrol() {
+	startTask(arcadeControl);
   while (true)
   {
 		motor[LeftBase] = getValueOf(Ch3);
 		motor[RightBase] = getValueOf(Ch2);
-		motor[Lift] = btnAsChannel(Btn6);
-		motor[Claw] = btnAsChannel(Btn5);
+		motor[Lift] = getButtonChannel(Btn6);
+		motor[Claw] = getButtonChannel(Btn5);
   }
 }
